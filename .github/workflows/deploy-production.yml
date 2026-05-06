@@ -1,0 +1,190 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('app/**/*.{js,jsx,ts,tsx}', 'components/**/*.{js,jsx,ts,tsx}', 'lib/**/*.{js,ts}', 'tailwind.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Validate production environment
+        run: npm run verify:env
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          RAPIDOC_BASE_URL: ${{ secrets.RAPIDOC_BASE_URL }}
+          RAPIDOC_API_KEY: ${{ secrets.RAPIDOC_API_KEY }}
+          RAPIDOC_URL: ${{ secrets.RAPIDOC_URL }}
+          RAPIDOC_TOKEN: ${{ secrets.RAPIDOC_TOKEN }}
+          RAPIDOC_PARTNER_ID: ${{ secrets.RAPIDOC_PARTNER_ID }}
+          CLIENTID: ${{ secrets.CLIENTID }}
+          ASAAS_API_KEY: ${{ secrets.ASAAS_API_KEY }}
+          ASAAS_BASE_URL: ${{ secrets.ASAAS_BASE_URL }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ secrets.MONGODB_DB }}
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+
+      - name: Ensure MongoDB indexes
+        run: npm run db:setup
+        continue-on-error: true
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ secrets.MONGODB_DB }}
+
+      - name: Package standalone release
+        run: npm run package:standalone
+
+      - name: Create release archive
+        run: tar -czf metta-release.tar.gz -C release .
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metta-release
+          path: metta-release.tar.gz
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout (for tagging)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: metta-release
+          path: .
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          SSH_PORT: ${{ secrets.HOSTINGER_PORT }}
+          SSH_HOST: ${{ secrets.HOSTINGER_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p "$SSH_PORT" -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload release
+        env:
+          SSH_PORT: ${{ secrets.HOSTINGER_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_USER }}
+          SSH_HOST: ${{ secrets.HOSTINGER_HOST }}
+          DEPLOY_PATH: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
+        run: |
+          scp -P "$SSH_PORT" metta-release.tar.gz \
+            "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/metta-release.tar.gz"
+
+      - name: Activate release
+        env:
+          SSH_PORT: ${{ secrets.HOSTINGER_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_USER }}
+          SSH_HOST: ${{ secrets.HOSTINGER_HOST }}
+          DEPLOY_PATH: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
+          RELEASE_ID: ${{ github.sha }}
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' RELEASE_ID='$RELEASE_ID' bash -s" << 'EOF'
+          set -euo pipefail
+
+          PREV_RELEASE=$(readlink -f "${DEPLOY_PATH}/current" 2>/dev/null || echo "")
+
+          mkdir -p "${DEPLOY_PATH}/releases" "${DEPLOY_PATH}/shared"
+          rm -rf "${DEPLOY_PATH}/releases/${RELEASE_ID}"
+          mkdir -p "${DEPLOY_PATH}/releases/${RELEASE_ID}"
+          tar -xzf "${DEPLOY_PATH}/metta-release.tar.gz" -C "${DEPLOY_PATH}/releases/${RELEASE_ID}"
+
+          ln -sfn "${DEPLOY_PATH}/releases/${RELEASE_ID}" "${DEPLOY_PATH}/current"
+          mkdir -p "${DEPLOY_PATH}/current/tmp"
+          touch "${DEPLOY_PATH}/current/tmp/restart.txt"
+
+          echo "${PREV_RELEASE}" > "${DEPLOY_PATH}/.previous_release"
+
+          ls -1dt "${DEPLOY_PATH}/releases"/*/ 2>/dev/null | tail -n +6 | xargs -r rm -rf
+          EOF
+
+      - name: Healthcheck
+        id: healthcheck
+        env:
+          PRODUCTION_HEALTHCHECK_URL: ${{ secrets.PRODUCTION_HEALTHCHECK_URL }}
+        if: env.PRODUCTION_HEALTHCHECK_URL != ''
+        run: |
+          curl --fail --silent --show-error \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            "$PRODUCTION_HEALTHCHECK_URL"
+
+      - name: Rollback on healthcheck failure
+        if: failure() && steps.healthcheck.conclusion == 'failure'
+        env:
+          SSH_PORT: ${{ secrets.HOSTINGER_PORT }}
+          SSH_USER: ${{ secrets.HOSTINGER_USER }}
+          SSH_HOST: ${{ secrets.HOSTINGER_HOST }}
+          DEPLOY_PATH: ${{ secrets.HOSTINGER_DEPLOY_PATH }}
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' bash -s" << 'EOF'
+          set -euo pipefail
+          PREV_RELEASE=$(cat "${DEPLOY_PATH}/.previous_release" 2>/dev/null || echo "")
+          if [ -n "${PREV_RELEASE}" ] && [ -d "${PREV_RELEASE}" ]; then
+            echo "Rolling back to ${PREV_RELEASE}"
+            ln -sfn "${PREV_RELEASE}" "${DEPLOY_PATH}/current"
+            mkdir -p "${DEPLOY_PATH}/current/tmp"
+            touch "${DEPLOY_PATH}/current/tmp/restart.txt"
+          else
+            echo "No previous release found; skipping rollback."
+          fi
+          EOF
+
+      - name: Tag release in git
+        if: success() && (steps.healthcheck.conclusion == 'success' || steps.healthcheck.conclusion == 'skipped')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="deploy-$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          git tag "$TAG"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$TAG"
