@@ -39,17 +39,6 @@ jobs:
         run: npm run verify:env
         env:
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          RAPIDOC_BASE_URL: ${{ secrets.RAPIDOC_BASE_URL }}
-          RAPIDOC_API_KEY: ${{ secrets.RAPIDOC_API_KEY }}
-          RAPIDOC_URL: ${{ secrets.RAPIDOC_URL }}
-          RAPIDOC_TOKEN: ${{ secrets.RAPIDOC_TOKEN }}
-          RAPIDOC_PARTNER_ID: ${{ secrets.RAPIDOC_PARTNER_ID }}
-          CLIENTID: ${{ secrets.CLIENTID }}
-          ASAAS_API_KEY: ${{ secrets.ASAAS_API_KEY }}
-          ASAAS_BASE_URL: ${{ secrets.ASAAS_BASE_URL }}
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          MONGODB_DB: ${{ secrets.MONGODB_DB }}
 
       - name: Lint
         run: npm run lint
@@ -58,13 +47,6 @@ jobs:
         run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
-
-      - name: Ensure MongoDB indexes
-        run: npm run db:setup
-        continue-on-error: true
-        env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          MONGODB_DB: ${{ secrets.MONGODB_DB }}
 
       - name: Package standalone release
         run: npm run package:standalone
