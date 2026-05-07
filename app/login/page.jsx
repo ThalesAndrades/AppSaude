@@ -36,7 +36,7 @@ function LoginForm() {
   return (
     <AuthShell
       title="Bem-vindo de volta"
-      subtitle="Acesse sua conta para falar com um médico."
+      subtitle="Acesse sua área interna e continue sua jornada."
       footer={
         <>
           Não tem conta?{' '}

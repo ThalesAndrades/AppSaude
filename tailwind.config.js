@@ -8,30 +8,30 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Brand: profundo verde-jade — sofisticado, médico mas não estéril.
+        // Brand: tons quentes (café) — premium e acolhedor.
         brand: {
-          50:  '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
-          950: '#022c22',
+          50:  '#faf7f2',
+          100: '#f3eadf',
+          200: '#e6d3c0',
+          300: '#d3b79b',
+          400: '#bf986e',
+          500: '#a8794f',
+          600: '#8a5f3e',
+          700: '#6f4a31',
+          800: '#553725',
+          900: '#3a2619',
+          950: '#24160f',
         },
-        // Accent: âmbar-quente para destaques, badges, "mais escolhido".
+        // Accent: dourado para destaque.
         accent: {
-          50:  '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
+          50:  '#fff9eb',
+          100: '#fff0c9',
+          200: '#ffe09a',
+          300: '#f9c96a',
+          400: '#eab14a',
+          500: '#cc9835',
+          600: '#a77728',
+          700: '#845b1f',
         },
         // Ink: tons quentes de cinza para superfícies/textos.
         ink: {
@@ -72,16 +72,16 @@ module.exports = {
         card: '0 1px 0 rgba(15, 23, 42, 0.04), 0 8px 24px -8px rgba(15, 23, 42, 0.08)',
         lift: '0 4px 12px rgba(15, 23, 42, 0.06), 0 24px 48px -16px rgba(15, 23, 42, 0.16)',
         ring: '0 0 0 1px rgba(15, 23, 42, 0.06)',
-        glow: '0 0 0 6px rgba(16, 185, 129, 0.12)',
+        glow: '0 0 0 6px rgba(204, 152, 53, 0.14)',
       },
       borderRadius: {
         '4xl': '2rem',
       },
       backgroundImage: {
         'mesh-brand':
-          'radial-gradient(at 12% 8%, rgba(16,185,129,0.18) 0px, transparent 50%),' +
-          'radial-gradient(at 88% 4%, rgba(45,212,191,0.14) 0px, transparent 50%),' +
-          'radial-gradient(at 50% 92%, rgba(251,191,36,0.10) 0px, transparent 60%)',
+          'radial-gradient(at 12% 8%, rgba(204,152,53,0.18) 0px, transparent 50%),' +
+          'radial-gradient(at 88% 4%, rgba(191,152,110,0.16) 0px, transparent 50%),' +
+          'radial-gradient(at 50% 92%, rgba(163,119,40,0.12) 0px, transparent 60%)',
         'grid-faint':
           'linear-gradient(to right, rgba(15,23,42,0.04) 1px, transparent 1px),' +
           'linear-gradient(to bottom, rgba(15,23,42,0.04) 1px, transparent 1px)',

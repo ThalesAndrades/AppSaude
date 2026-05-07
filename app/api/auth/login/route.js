@@ -13,6 +13,12 @@ export async function POST(req) {
     if (!user || !verifyPassword(senha, user.senhaHash)) {
       return NextResponse.json({ erro: 'E-mail ou senha incorretos.' }, { status: 401 });
     }
+    if (user.audience !== 'women') {
+      return NextResponse.json(
+        { erro: 'Este acesso é exclusivo para mulheres.' },
+        { status: 403 }
+      );
+    }
 
     await createSession({
       sub: String(user._id),
@@ -20,8 +26,6 @@ export async function POST(req) {
       email: user.email,
       cpf: user.cpf || '',
       telefone: user.telefone || '',
-      planoAtivo: user.planoAtivo || null,
-      beneficiaryUuid: user.rapidocBeneficiaryUuid || null,
     });
     return NextResponse.json({ ok: true });
   } catch (e) {

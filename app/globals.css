@@ -119,8 +119,8 @@ a {
   .btn-primary {
     @apply btn text-white
            bg-gradient-to-b from-brand-500 to-brand-700
-           shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(6,95,70,0.20),0_8px_20px_-8px_rgba(6,95,70,0.45)]
-           hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_2px_4px_rgba(6,95,70,0.25),0_14px_30px_-10px_rgba(6,95,70,0.55)]
+           shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_1px_2px_rgba(111,74,49,0.18),0_8px_20px_-8px_rgba(111,74,49,0.40)]
+           hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_2px_4px_rgba(111,74,49,0.22),0_14px_30px_-10px_rgba(111,74,49,0.50)]
            hover:-translate-y-px
            active:translate-y-0;
   }

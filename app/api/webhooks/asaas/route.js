@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { consultarPagamento, statusPago } from '@/lib/asaas';
 import { dbCollections } from '@/lib/db';
-import { ativarPlanoDoUsuario, marcarOrderAtivada } from '@/lib/activatePlan';
+import { ativarAcessoDoUsuario, marcarOrderAtivada } from '@/lib/grantAccess';
 
 const PAID_EVENTS = new Set(['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED']);
 
@@ -42,16 +42,19 @@ export async function POST(req) {
     const m = /^mf_([^_]+)_([^_]+)_/.exec(ref);
     if (!m) return NextResponse.json({ ok: true });
 
-    const [, userId, planoId] = m;
-    const { beneficiaryUuid } = await ativarPlanoDoUsuario({
+    const [, userId, productId] = m;
+    await ativarAcessoDoUsuario({
       userId,
-      planoId,
+      productId,
+      provider: 'asaas',
       providerRef: `asaas:${paymentId}`,
+      paymentId,
+      referenceId: ref,
     });
 
     await marcarOrderAtivada({
       filter: { $or: [{ asaasPaymentId: paymentId }, { referenceId: ref }] },
-      beneficiaryUuid,
+      productId,
     });
 
     return NextResponse.json({ ok: true });

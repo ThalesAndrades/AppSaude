@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PLANS } from '@/lib/plans';
+import { PRODUCTS } from '@/lib/products';
 
 function maskCard(v) {
   return v.replace(/\D/g, '').slice(0, 16).replace(/(\d{4})(?=\d)/g, '$1 ');
@@ -81,7 +81,7 @@ function PixStep({ pix, pixStatus, onGerar, loading, erro }) {
           <IconCheck />
         </div>
         <h2 className="display-3 mt-4">Pagamento confirmado!</h2>
-        <p className="text-text-muted mt-2">Seu plano está sendo ativado…</p>
+        <p className="text-text-muted mt-2">Seu acesso está sendo liberado…</p>
       </div>
     );
   }
@@ -302,9 +302,9 @@ function CardStep({ card, setCard, onSubmit, loading, erro }) {
 }
 
 export default function CheckoutPage() {
-  const { plano: planoId } = useParams();
+  const { plano: productId } = useParams();
   const router = useRouter();
-  const plano = PLANS[planoId];
+  const produto = PRODUCTS[productId];
 
   const [metodo, setMetodo] = useState('pix');
   const [card, setCard] = useState({ number: '', name: '', exp: '', cvv: '', cep: '', numero: '', parcelas: 1 });
@@ -315,8 +315,8 @@ export default function CheckoutPage() {
   const pollingRef = useRef(null);
 
   const valor = useMemo(
-    () => (plano ? (plano.preco / 100).toFixed(2).replace('.', ',') : '0,00'),
-    [plano]
+    () => (produto ? (produto.preco / 100).toFixed(2).replace('.', ',') : '0,00'),
+    [produto]
   );
 
   useEffect(() => {
@@ -347,11 +347,11 @@ export default function CheckoutPage() {
     };
   }, [pix?.paymentId, router]);
 
-  if (!plano) {
+  if (!produto) {
     return (
       <div className="mx-auto max-w-md px-4 py-20 text-center">
-        <h1 className="display-3 mb-4">Plano não encontrado</h1>
-        <Link href="/planos" className="btn-primary no-underline">Ver planos</Link>
+        <h1 className="display-3 mb-4">Produto não encontrado</h1>
+        <Link href="/planos" className="btn-primary no-underline">Ver produtos</Link>
       </div>
     );
   }
@@ -362,7 +362,7 @@ export default function CheckoutPage() {
     const r = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planoId: plano.id, metodo: 'pix' }),
+      body: JSON.stringify({ productId: produto.id, metodo: 'pix' }),
     });
     const data = await r.json().catch(() => ({}));
     setLoading(false);
@@ -389,7 +389,7 @@ export default function CheckoutPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        planoId: plano.id,
+        productId: produto.id,
         metodo: 'cartao',
         cartao: {
           number: digits,
@@ -417,7 +417,7 @@ export default function CheckoutPage() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        Voltar aos planos
+        Voltar aos produtos
       </Link>
 
       <div className="grid md:grid-cols-[1fr_300px] gap-6 lg:gap-8 items-start">
@@ -425,7 +425,7 @@ export default function CheckoutPage() {
           <h1 className="font-display text-2xl sm:text-3xl font-semibold text-text-strong tracking-tight">
             Finalizar pagamento
           </h1>
-          <p className="text-text-muted mt-1">{plano.nome}</p>
+          <p className="text-text-muted mt-1">{produto.nome}</p>
 
           <div className="mt-6 flex gap-2 p-1 rounded-2xl bg-surface-2 border border-line">
             {[
@@ -491,7 +491,7 @@ export default function CheckoutPage() {
 
           <div className="mt-4 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-text-muted">{plano.nome}</span>
+              <span className="text-text-muted">{produto.nome}</span>
               <strong className="text-text-strong tabular-nums">R$ {valor}</strong>
             </div>
           </div>
@@ -502,14 +502,12 @@ export default function CheckoutPage() {
               <strong className="font-display text-2xl font-semibold text-text-strong tabular-nums">
                 R$ {valor}
               </strong>
-              {plano.recorrente && (
-                <span className="block text-xs text-text-muted">/mês</span>
-              )}
+              <span className="block text-xs text-text-muted">{produto.parcelamentoLabel}</span>
             </div>
           </div>
 
           <ul className="mt-5 pt-5 border-t border-line space-y-2.5">
-            {plano.beneficios.map((b) => (
+            {produto.includes.map((b) => (
               <li key={b} className="flex items-start gap-2.5 text-xs text-text-muted">
                 <svg className="w-3.5 h-3.5 shrink-0 mt-0.5 text-brand-500" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="M4 10.5l3.5 3.5L16 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -520,7 +518,7 @@ export default function CheckoutPage() {
           </ul>
 
           <p className="mt-5 text-[11px] text-text-muted leading-relaxed">
-            Pix ou cartão · sem fidelidade · cancele quando quiser
+            Pix ou cartão · acesso liberado automaticamente após confirmação
           </p>
         </aside>
       </div>

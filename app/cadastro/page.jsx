@@ -25,6 +25,7 @@ function CadastroForm() {
   const [form, setForm] = useState({
     nome: '', email: '', cpf: '', telefone: '', dataNascimento: '', senha: '',
   });
+  const [souMulher, setSouMulher] = useState(false);
   const [senhaVis, setSenhaVis] = useState(false);
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ function CadastroForm() {
       ...form,
       cpf: form.cpf.replace(/\D/g, ''),
       telefone: form.telefone.replace(/\D/g, ''),
+      souMulher,
     };
 
     const r = await fetch('/api/auth/cadastro', {
@@ -62,7 +64,7 @@ function CadastroForm() {
   return (
     <AuthShell
       title="Criar sua conta"
-      subtitle="Em menos de um minuto. Sem compromisso."
+      subtitle="Um espaço seguro e exclusivo para mulheres."
       footer={
         <>
           Já tem cadastro?{' '}
@@ -187,7 +189,21 @@ function CadastroForm() {
           </div>
         )}
 
-        <button className="btn-primary w-full btn-lg mt-2" disabled={loading}>
+        <div className="rounded-2xl border border-line bg-surface-2/60 px-4 py-3">
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="mt-1 rounded-md border-line text-brand-600 focus:ring-brand-500/30"
+              checked={souMulher}
+              onChange={(e) => setSouMulher(e.target.checked)}
+            />
+            <span className="text-sm text-text">
+              Confirmo que sou mulher e entendo que este acesso é exclusivo para mulheres.
+            </span>
+          </label>
+        </div>
+
+        <button className="btn-primary w-full btn-lg mt-2" disabled={loading || !souMulher}>
           {loading ? (
             <span className="flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

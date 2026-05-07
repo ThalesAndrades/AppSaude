@@ -6,9 +6,15 @@ export async function POST(req) {
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ erro: 'JSON inválido' }, { status: 400 }); }
 
-  const { nome, email, cpf, telefone, dataNascimento, senha } = body || {};
-  if (!nome || !email || !cpf || !telefone || !dataNascimento || !senha) {
+  const { nome, email, cpf, telefone, dataNascimento, senha, souMulher } = body || {};
+  if (!nome || !email || !cpf || !telefone || !senha) {
     return NextResponse.json({ erro: 'Preencha todos os campos.' }, { status: 400 });
+  }
+  if (souMulher !== true) {
+    return NextResponse.json(
+      { erro: 'Esta plataforma é exclusiva para mulheres. Confirme para continuar.' },
+      { status: 400 }
+    );
   }
   if (String(senha).length < 8) {
     return NextResponse.json({ erro: 'Senha deve ter ao menos 8 caracteres.' }, { status: 400 });
@@ -39,8 +45,6 @@ export async function POST(req) {
       email: user.email,
       cpf: user.cpf,
       telefone: user.telefone,
-      planoAtivo: null,
-      beneficiaryUuid: null,
     });
     return NextResponse.json({ ok: true });
   } catch (e) {

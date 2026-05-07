@@ -16,24 +16,25 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: '/minha-conta/consulta-imediata',
-    label: 'Consulta imediata',
-    shortLabel: 'Consulta',
+    href: '/minha-conta/biblioteca',
+    label: 'Biblioteca',
+    shortLabel: 'Cursos',
     exact: false,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
       </svg>
     ),
   },
   {
-    href: '/minha-conta/agendamentos',
-    label: 'Agendamentos',
-    shortLabel: 'Agenda',
+    href: '/minha-conta/conta',
+    label: 'Conta',
+    shortLabel: 'Conta',
     exact: false,
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M8 2v4M16 2v4M3 9h18M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 21a8 8 0 10-16 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+        <path d="M12 13a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },

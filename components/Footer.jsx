@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
   const ano = new Date().getFullYear();
   return (
     <footer className="mt-24 border-t border-ink-200/80 bg-gradient-to-b from-white to-ink-50/60">
@@ -10,13 +14,12 @@ export default function Footer() {
           <div>
             <Logo />
             <p className="mt-4 text-sm text-ink-600 max-w-xs leading-relaxed">
-              Saúde digital simples, humana e acessível. Atendimento por vídeo,
-              agendamento com especialistas e prescrição digital.
+              Cursos e mentorias com experiência interna premium: objetiva, prática e feita para mulheres.
             </p>
           </div>
 
           <FooterCol title="Produto">
-            <FooterLink href="/planos">Planos</FooterLink>
+            <FooterLink href="/planos">Produtos</FooterLink>
             <FooterLink href="/#como-funciona">Como funciona</FooterLink>
             <FooterLink href="/cadastro">Criar conta</FooterLink>
           </FooterCol>
@@ -27,22 +30,30 @@ export default function Footer() {
             <FooterLink href="mailto:contato@mettafit.site">Contato</FooterLink>
           </FooterCol>
 
-          <FooterCol title="Atendimento">
+          <FooterCol title="Experiência">
             <li className="text-ink-600 leading-relaxed">
-              Médicos habilitados com CRM ativo.
+              Área interna mobile-first, rápida e clara.
             </li>
             <li className="text-ink-600 leading-relaxed">
-              Pagamentos via Pix ou cartão de crédito.
+              Pagamentos via Pix ou cartão.
             </li>
           </FooterCol>
         </div>
 
         <div className="mt-12 pt-6 border-t border-ink-200/70 flex flex-col sm:flex-row gap-3 justify-between text-xs text-ink-500">
-          <p>© {ano} Mettafit. Todos os direitos reservados.</p>
-          <p>
-            Os atendimentos médicos são prestados por profissionais habilitados,
-            inscritos no respectivo conselho profissional.
-          </p>
+          <p>© {ano} Mulheres em Movimento. Todos os direitos reservados.</p>
+          <div className="flex items-center gap-3">
+            <p>Plataforma exclusiva para mulheres.</p>
+            {pathname === '/' && (
+              <Link
+                href="/admin"
+                aria-label="Admin"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-ink-200/80 bg-white/60 text-ink-400 no-underline transition-colors hover:text-ink-700 hover:border-ink-300"
+              >
+                ?
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </footer>

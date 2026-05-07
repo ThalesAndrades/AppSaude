@@ -10,8 +10,8 @@ export default function AuthShell({ title, subtitle, footer, children }) {
           className="absolute inset-0 opacity-90"
           style={{
             background:
-              'radial-gradient(60% 60% at 80% 0%, rgba(16,185,129,0.42) 0%, transparent 60%),' +
-              'radial-gradient(50% 60% at 0% 100%, rgba(251,191,36,0.22) 0%, transparent 60%)',
+              'radial-gradient(60% 60% at 80% 0%, rgba(204,152,53,0.32) 0%, transparent 60%),' +
+              'radial-gradient(50% 60% at 0% 100%, rgba(138,95,62,0.26) 0%, transparent 60%)',
           }}
           aria-hidden="true"
         />
@@ -23,21 +23,20 @@ export default function AuthShell({ title, subtitle, footer, children }) {
         </div>
         <div className="relative max-w-md">
           <p className="font-display text-3xl leading-tight font-medium">
-            “Em três minutos eu já estava em consulta. Receita digital direto no
-            celular.”
+            “Eu parei de me cobrar por tudo. Agora eu tenho clareza, um plano e eu sigo.”
           </p>
           <div className="mt-6 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 grid place-items-center text-sm font-display font-semibold">
               R
             </div>
             <div className="text-sm">
-              <p className="font-semibold">Renata, 34</p>
-              <p className="text-white/60">Cliente Plano Essencial</p>
+              <p className="font-semibold">Renata</p>
+              <p className="text-white/60">Aluna</p>
             </div>
           </div>
         </div>
         <div className="relative text-xs text-white/50">
-          © {new Date().getFullYear()} Mettafit · Telemedicina digital
+          © {new Date().getFullYear()} Mulheres em Movimento
         </div>
       </aside>
 

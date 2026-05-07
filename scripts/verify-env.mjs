@@ -3,9 +3,6 @@ import { validateMongoUri } from '../lib/mongoUri.js';
 const required = [
   ['NEXT_PUBLIC_SITE_URL'],
   ['SESSION_SECRET'],
-  ['RAPIDOC_BASE_URL', 'RAPIDOC_URL'],
-  ['RAPIDOC_API_KEY', 'RAPIDOC_TOKEN'],
-  ['RAPIDOC_PARTNER_ID', 'CLIENTID'],
   ['ASAAS_API_KEY'],
   ['MONGODB_URI'],
 ];

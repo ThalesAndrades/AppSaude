@@ -29,7 +29,8 @@ try {
   const users = db.collection('users');
   const paymentOrders = db.collection('payment_orders');
   const webhookEvents = db.collection('webhook_events');
-  const planActivations = db.collection('plan_activations');
+  const entitlements = db.collection('entitlements');
+  const courseProgress = db.collection('course_progress');
 
   const created = await Promise.all([
     users.createIndex({ email: 1 }, { unique: true, name: 'uniq_email' }),
@@ -41,10 +42,7 @@ try {
         partialFilterExpression: { cpf: { $type: 'string' } },
       }
     ),
-    users.createIndex(
-      { rapidocBeneficiaryUuid: 1 },
-      { name: 'rapidoc_beneficiary', sparse: true }
-    ),
+    users.createIndex({ audience: 1 }, { name: 'audience' }),
 
     paymentOrders.createIndex(
       { referenceId: 1 },
@@ -57,13 +55,22 @@ try {
       { name: 'user_recent' }
     ),
 
-    planActivations.createIndex(
-      { userId: 1, createdAt: -1 },
+    entitlements.createIndex(
+      { userId: 1, productId: 1 },
+      { unique: true, name: 'uniq_user_product' }
+    ),
+    entitlements.createIndex(
+      { userId: 1, activatedAt: -1 },
       { name: 'user_recent' }
     ),
-    planActivations.createIndex(
-      { beneficiaryUuid: 1 },
-      { name: 'beneficiaryUuid', sparse: true }
+
+    courseProgress.createIndex(
+      { userId: 1, lessonId: 1 },
+      { unique: true, name: 'uniq_user_lesson' }
+    ),
+    courseProgress.createIndex(
+      { userId: 1, updatedAt: -1 },
+      { name: 'user_recent' }
     ),
 
     webhookEvents.createIndex(

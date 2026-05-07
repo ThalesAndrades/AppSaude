@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { getCurrentUser } from '@/lib/currentUser';
+import { listUserEntitlements } from '@/lib/entitlements';
 import { ContaNavSidebar, ContaNavMobile } from '@/components/ContaNav';
 
 export default async function ContaLayout({ children }) {
@@ -8,9 +9,10 @@ export default async function ContaLayout({ children }) {
   if (!sess) redirect('/login?next=/minha-conta');
 
   const user = await getCurrentUser();
-  const planoAtivo = Boolean(user?.rapidocBeneficiaryUuid);
   const inicial = (user?.nome || user?.email || sess.email || '?').trim().charAt(0).toUpperCase();
-  const planoLabel = user?.planoAtivo === 'essencial' ? 'Essencial' : 'Avulso';
+  if (user && user.audience && user.audience !== 'women') redirect('/login');
+  const entitlements = user ? await listUserEntitlements(String(user._id)).catch(() => []) : [];
+  const acessoAtivo = entitlements.length > 0;
 
   return (
     <div className="bg-bg min-h-[calc(100vh-4rem)]">
@@ -29,13 +31,13 @@ export default async function ContaLayout({ children }) {
               </div>
             </div>
             <div className="mt-4">
-              {planoAtivo ? (
+              {acessoAtivo ? (
                 <span className="badge-brand">
                   <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
-                  Plano ativo · {planoLabel}
+                  Acesso ativo
                 </span>
               ) : (
-                <span className="badge-ink">Sem plano ativo</span>
+                <span className="badge-ink">Sem acesso ativo</span>
               )}
             </div>
           </div>

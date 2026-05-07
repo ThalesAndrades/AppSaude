@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { getPlan } from '@/lib/plans';
+import { getProduct } from '@/lib/products';
 import {
   obterOuCriarCliente,
   criarCobrancaPix,
@@ -9,7 +9,7 @@ import {
   statusPago,
 } from '@/lib/asaas';
 import { dbCollections } from '@/lib/db';
-import { ativarPlanoDoUsuario, marcarOrderAtivada } from '@/lib/activatePlan';
+import { ativarAcessoDoUsuario, marcarOrderAtivada } from '@/lib/grantAccess';
 
 // GET /api/checkout?paymentId=... — polling de status Pix
 export async function GET(req) {
@@ -36,15 +36,19 @@ export async function GET(req) {
 
     if (order) {
       const m = /^mf_([^_]+)_([^_]+)_/.exec(order.referenceId || '');
-      if (m) {
-        const [, userId, planoId] = m;
+      const userId = order.userId || m?.[1];
+      const productId = order.productId || m?.[2];
+      if (userId && productId) {
         try {
-          const { beneficiaryUuid } = await ativarPlanoDoUsuario({
+          await ativarAcessoDoUsuario({
             userId,
-            planoId,
+            productId,
+            provider: 'asaas',
             providerRef: `asaas:${paymentId}`,
+            paymentId,
+            referenceId: order.referenceId,
           });
-          await marcarOrderAtivada({ filter: { asaasPaymentId: paymentId }, beneficiaryUuid });
+          await marcarOrderAtivada({ filter: { asaasPaymentId: paymentId }, productId });
           return NextResponse.json({ pago: true, ativado: true });
         } catch (activErr) {
           return NextResponse.json({ pago: true, ativado: false, erro: activErr?.message });
@@ -67,12 +71,12 @@ export async function POST(req) {
   let body;
   try { body = await req.json(); } catch { return NextResponse.json({ erro: 'JSON inválido' }, { status: 400 }); }
 
-  const { planoId, metodo, cartao } = body || {};
-  const plano = getPlan(planoId);
-  if (!plano) return NextResponse.json({ erro: 'Plano inválido.' }, { status: 400 });
+  const { productId, metodo, cartao } = body || {};
+  const produto = getProduct(productId);
+  if (!produto) return NextResponse.json({ erro: 'Produto inválido.' }, { status: 400 });
   if (!['pix', 'cartao'].includes(metodo)) return NextResponse.json({ erro: 'Método inválido.' }, { status: 400 });
 
-  const referenceId = `mf_${sess.sub}_${plano.id}_${Date.now()}`;
+  const referenceId = `mf_${sess.sub}_${produto.id}_${Date.now()}`;
   const cliente = {
     nome: sess.nome,
     email: sess.email,
@@ -89,9 +93,9 @@ export async function POST(req) {
       userId: String(sess.sub),
       email: sess.email,
       cpf: sess.cpf,
-      planoId: plano.id,
-      planoNome: plano.nome,
-      recorrente: Boolean(plano.recorrente),
+      productId: produto.id,
+      productNome: produto.nome,
+      productTipo: produto.tipo,
       metodo,
       provider: 'asaas',
       status: 'created',
@@ -105,8 +109,8 @@ export async function POST(req) {
     if (metodo === 'pix') {
       const cobranca = await criarCobrancaPix({
         customerId,
-        valorEmCentavos: plano.preco,
-        descricao: plano.nome,
+        valorEmCentavos: produto.preco,
+        descricao: produto.nome,
         referenceId,
       });
 
@@ -140,8 +144,8 @@ export async function POST(req) {
 
     const order = await criarCobrancaCartao({
       customerId,
-      valorEmCentavos: plano.preco,
-      descricao: plano.nome,
+      valorEmCentavos: produto.preco,
+      descricao: produto.nome,
       referenceId,
       cartao,
       cliente,
@@ -171,14 +175,17 @@ export async function POST(req) {
       );
     }
 
-    let beneficiaryUuid = null;
+    let ativado = false;
     try {
-      const activation = await ativarPlanoDoUsuario({
+      await ativarAcessoDoUsuario({
         userId: sess.sub,
-        planoId: plano.id,
+        productId: produto.id,
+        provider: 'asaas',
         providerRef: `asaas:${order.id}`,
+        paymentId: order.id,
+        referenceId,
       });
-      beneficiaryUuid = activation.beneficiaryUuid;
+      ativado = true;
     } catch {}
 
     try {
@@ -190,10 +197,9 @@ export async function POST(req) {
               updatedAt: new Date(),
               asaasPaymentId: order?.id,
               asaasCustomerId: customerId,
-              status: beneficiaryUuid ? 'activated' : 'paid',
+              status: ativado ? 'activated' : 'paid',
               chargeStatus: order?.status,
-              beneficiaryUuid,
-              ...(beneficiaryUuid ? { activationAt: new Date() } : {}),
+              ...(ativado ? { activationAt: new Date() } : {}),
             },
           }
         );

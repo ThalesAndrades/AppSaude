@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/currentUser';
+import { listUserEntitlements } from '@/lib/entitlements';
 
 export async function GET() {
   const u = await getCurrentUser();
   if (!u) return NextResponse.json({ erro: 'Não autenticado' }, { status: 401 });
+  const entitlements = await listUserEntitlements(String(u._id)).catch(() => []);
   return NextResponse.json({
     user: {
       sub: String(u._id),
@@ -11,8 +13,9 @@ export async function GET() {
       email: u.email,
       cpf: u.cpf,
       telefone: u.telefone,
-      planoAtivo: u.planoAtivo || null,
-      beneficiaryUuid: u.rapidocBeneficiaryUuid || null,
+      audience: u.audience || null,
+      onboardingCompletedAt: u.onboarding?.completedAt || null,
+      entitlements: entitlements.map((e) => e.productId),
     },
   });
 }

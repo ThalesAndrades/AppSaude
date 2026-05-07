@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-export default function MobileMenu({ isLoggedIn = false }) {
+export default function MobileMenu({ isLoggedIn = false, demoBypass = false }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
@@ -77,7 +77,7 @@ export default function MobileMenu({ isLoggedIn = false }) {
             style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <MobileLink href="/planos" onClick={close}>Planos</MobileLink>
+            <MobileLink href="/planos" onClick={close}>Produtos</MobileLink>
             <MobileLink href="/#como-funciona" onClick={close}>Como funciona</MobileLink>
             <div className="h-px bg-line/60 mx-3 my-2" />
             {isLoggedIn ? (
@@ -86,8 +86,8 @@ export default function MobileMenu({ isLoggedIn = false }) {
               </MobileLink>
             ) : (
               <>
-                <MobileLink href="/login" onClick={close}>Entrar</MobileLink>
-                <MobileLink href="/cadastro" onClick={close} primary>
+                <MobileLink href={demoBypass ? '/minha-conta' : '/login'} onClick={close}>Entrar</MobileLink>
+                <MobileLink href={demoBypass ? '/minha-conta' : '/cadastro'} onClick={close} primary>
                   Criar conta
                 </MobileLink>
               </>

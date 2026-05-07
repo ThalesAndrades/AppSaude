@@ -3,6 +3,15 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'coreva-normal.trae.ai',
+        pathname: '/api/ide/v1/text_to_image',
+      },
+    ],
+  },
 
   async headers() {
     return [
