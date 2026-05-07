@@ -1,6 +1,9 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import ProductCard from '@/components/ProductCard';
 import { listProducts, getSegments } from '@/lib/products';
+
+const VIAGENS_BANNER_BG = '/banners/viagens-cruzeiro-2027.jpg';
 
 export const metadata = { title: 'Experiências' };
 
@@ -99,6 +102,19 @@ export default function PlanosPage() {
         {/* Seção Viagens - Especial */}
         <section id="viagem" className="mt-16">
           <div className="card border-accent-200 bg-gradient-to-br from-accent-50 to-brand-50 p-8">
+            <div className="relative overflow-hidden rounded-3xl border border-line bg-ink-950 mb-8">
+              <div className="relative aspect-[1024/451]">
+                <Image
+                  src={VIAGENS_BANNER_BG}
+                  alt="Banner Cruzeiro Mulheres em Movimento"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 900px"
+                  quality={86}
+                  style={{ objectFit: 'cover' }}
+                />
+              </div>
+            </div>
+
             <div className="flex items-center gap-4 mb-8">
               <div className="w-12 h-12 rounded-xl bg-accent-100 text-accent-700 grid place-items-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">

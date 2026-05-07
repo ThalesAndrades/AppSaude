@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import CountdownTimer from '@/components/CountdownTimer';
+import Image from 'next/image';
 import InteractiveButton from '@/components/InteractiveButton';
 import { showSuccessToast, showErrorToast } from '@/components/ToastSystem';
+
+const VIAGENS_BANNER_BG = '/banners/viagens-cruzeiro-2027.jpg';
 
 export default function InteresseViagensPage() {
   const [form, setForm] = useState({
@@ -18,54 +19,26 @@ export default function InteresseViagensPage() {
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
   const [vagasRestantes, setVagasRestantes] = useState(7);
-  const [pessoasVendo, setPessoasVendo] = useState(Math.floor(Math.random() * 15) + 5);
-  const [tempoRestante] = useState(() => {
-    const amanha = new Date();
-    amanha.setDate(amanha.getDate() + 1);
-    amanha.setHours(23, 59, 59, 0);
-    return amanha.toISOString();
-  });
+  const [pessoasVendo, setPessoasVendo] = useState(12);
 
-  // Simula pessoas vendo a página
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPessoasVendo(Math.floor(Math.random() * 15) + 5);
-    }, 8000);
-
-    return () => clearInterval(interval);
+    setPessoasVendo(Math.floor(Math.random() * 15) + 5);
   }, []);
-
-  // Diminui vagas gradualmente
-  useEffect(() => {
-    if (vagasRestantes > 0) {
-      const timeout = setTimeout(() => {
-        setVagasRestantes(prev => Math.max(0, prev - 1));
-      }, Math.random() * 30000 + 15000); // 15-45 segundos
-
-      return () => clearTimeout(timeout);
-    }
-  }, [vagasRestantes]);
 
   async function enviar(e) {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
-      // Simula envio
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 900));
       showSuccessToast(
         'Interesse registrado com sucesso!',
         'Entraremos em contato em breve com mais informações sobre as próximas viagens exclusivas.'
       );
-      
       setEnviado(true);
-      setVagasRestantes(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      showErrorToast(
-        'Erro ao enviar interesse',
-        'Por favor, tente novamente em alguns instantes.'
-      );
+      setVagasRestantes((prev) => Math.max(0, prev - 1));
+    } catch {
+      showErrorToast('Erro ao enviar interesse', 'Por favor, tente novamente em alguns instantes.');
     } finally {
       setLoading(false);
     }
@@ -73,245 +46,145 @@ export default function InteresseViagensPage() {
 
   if (enviado) {
     return (
-      <motion.div 
-        className="max-w-2xl mx-auto text-center"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <motion.div 
-          className="card p-8"
-          whileHover={{ scale: 1.02 }}
-        >
-          <motion.div 
-            className="w-16 h-16 rounded-full bg-accent-100 text-accent-700 grid place-items-center mx-auto mb-6"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring" }}
-          >
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <div className="section-tight pt-16 pb-24">
+        <div className="card p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-accent-100 text-accent-700 grid place-items-center mx-auto mb-6">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </motion.div>
-          <motion.h1 
-            className="display-3 mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            Interesse registrado!
-          </motion.h1>
-          <motion.p 
-            className="lead text-text-muted mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
+          </div>
+          <h1 className="display-3 mb-4">Interesse registrado!</h1>
+          <p className="lead text-text-muted mb-8">
             Recebemos sua manifestação de interesse. Entraremos em contato em breve com mais informações sobre as próximas viagens exclusivas.
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Link href="/minha-conta" className="btn-primary">
-              Voltar à área interna
-            </Link>
-          </motion.div>
-        </motion.div>
-      </motion.div>
+          </p>
+          <Link href="/planos" className="btn-primary">
+            Voltar para a vitrine
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
-    <motion.div 
-      className="max-w-2xl"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-    >
-      {/* Urgência e Escassez */}
-      <motion.div 
-        className="mb-8 space-y-4"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <motion.div 
-          className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 rounded-xl shadow-lg"
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-bold text-lg">⚠️ Vagas Limitadas!</p>
-              <p className="text-sm opacity-90">Apenas {vagasRestantes} vagas restantes</p>
+    <div className="section pt-10 pb-20">
+      <div className="max-w-4xl">
+        <div className="relative overflow-hidden rounded-3xl border border-line bg-ink-950">
+          <div className="relative aspect-[1024/451]">
+            <Image
+              src={VIAGENS_BANNER_BG}
+              alt="Banner Cruzeiro Mulheres em Movimento"
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 900px"
+              quality={88}
+              style={{ objectFit: 'cover' }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="eyebrow">Viagens em Movimento</p>
+            <h1 className="display-2 mt-2">Manifeste seu interesse</h1>
+            <p className="lead mt-3 max-w-2xl">
+              Experiências únicas e selecionadas. Deixe seus dados e entraremos em contato quando abrirmos novas vagas.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <div className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
+              <div className="text-text-muted">Vagas</div>
+              <div className="text-text-strong font-semibold">{vagasRestantes} restantes</div>
             </div>
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              🔥
-            </motion.div>
+            <div className="rounded-2xl border border-line bg-surface px-4 py-3 text-sm">
+              <div className="text-text-muted">Agora</div>
+              <div className="text-text-strong font-semibold">{pessoasVendo} visualizando</div>
+            </div>
           </div>
-        </motion.div>
+        </div>
 
-        <CountdownTimer targetDate={tempoRestante} />
+        <div className="mt-8 card p-8">
+          <form onSubmit={enviar} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="label" htmlFor="nome">Nome completo</label>
+                <input
+                  type="text"
+                  id="nome"
+                  className="input mt-1.5"
+                  value={form.nome}
+                  onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="email">E-mail</label>
+                <input
+                  type="email"
+                  id="email"
+                  className="input mt-1.5"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
 
-        <motion.div 
-          className="bg-blue-50 border border-blue-200 p-3 rounded-lg"
-          animate={{ opacity: [0.8, 1, 0.8] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        >
-          <div className="flex items-center gap-2">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              👀
-            </motion.div>
-            <p className="text-sm text-blue-800">
-              <strong>{pessoasVendo} pessoas</strong> estão vendo esta página agora
-            </p>
-          </div>
-        </motion.div>
-      </motion.div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <label className="label" htmlFor="telefone">Telefone</label>
+                <input
+                  type="tel"
+                  id="telefone"
+                  className="input mt-1.5"
+                  value={form.telefone}
+                  onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="viagemInteresse">Qual tipo de viagem mais te interessa?</label>
+                <select
+                  id="viagemInteresse"
+                  className="input mt-1.5"
+                  value={form.viagemInteresse}
+                  onChange={(e) => setForm({ ...form, viagemInteresse: e.target.value })}
+                  required
+                >
+                  <option value="">Selecione uma opção</option>
+                  <option value="india">Viagem à Índia Sagrada</option>
+                  <option value="mediterraneo">Cruzeiro pelo Mediterrâneo</option>
+                  <option value="machu">Machu Picchu e Sagrado Feminino</option>
+                  <option value="bali">Retiro em Bali</option>
+                  <option value="egito">Egito e as Deusas</option>
+                  <option value="todas">Todas as opções</option>
+                </select>
+              </div>
+            </div>
 
-      <motion.header 
-        className="mb-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <motion.p 
-          className="eyebrow"
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          Viagens em Movimento
-        </motion.p>
-        <motion.h1 
-          className="display-2 mt-2"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          Manifeste seu interesse
-        </motion.h1>
-        <motion.p 
-          className="lead mt-3"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          As vagas para nossas viagens exclusivas são limitadas e selecionadas. Deixe seus dados e entraremos em contato quando abrirmos novas turmas.
-        </motion.p>
-      </motion.header>
-
-      <motion.div 
-        className="card p-8"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.7 }}
-        whileHover={{ scale: 1.01 }}
-      >
-        <motion.form onSubmit={enviar} className="space-y-6">
-          <motion.div 
-            className="grid md:grid-cols-2 gap-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <label className="label" htmlFor="nome">Nome completo</label>
-              <input
-                type="text"
-                id="nome"
+            <div>
+              <label className="label" htmlFor="mensagem">Mensagem (opcional)</label>
+              <textarea
+                id="mensagem"
+                rows={4}
                 className="input mt-1.5"
-                value={form.nome}
-                onChange={(e) => setForm({...form, nome: e.target.value})}
-                required
+                placeholder="Compartilhe sua história, expectativas e o que busca nesta jornada..."
+                value={form.mensagem}
+                onChange={(e) => setForm({ ...form, mensagem: e.target.value })}
               />
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }}>
-              <label className="label" htmlFor="email">E-mail</label>
-              <input
-                type="email"
-                id="email"
-                className="input mt-1.5"
-                value={form.email}
-                onChange={(e) => setForm({...form, email: e.target.value})}
-                required
-              />
-            </motion.div>
-          </motion.div>
+            </div>
 
-          <motion.div whileHover={{ scale: 1.02 }}>
-            <label className="label" htmlFor="telefone">Telefone</label>
-            <input
-              type="tel"
-              id="telefone"
-              className="input mt-1.5"
-              value={form.telefone}
-              onChange={(e) => setForm({...form, telefone: e.target.value})}
-              required
-            />
-          </motion.div>
+            <div className="rounded-2xl border border-line bg-surface-2/60 px-4 py-3">
+              <p className="text-sm text-text-muted">
+                <strong>Importante:</strong> As vagas são limitadas e selecionadas com cuidado. O processo considera alinhamento com os valores da comunidade.
+              </p>
+            </div>
 
-          <motion.div whileHover={{ scale: 1.02 }}>
-            <label className="label" htmlFor="viagemInteresse">Qual tipo de viagem mais te interessa?</label>
-            <select
-              id="viagemInteresse"
-              className="input mt-1.5"
-              value={form.viagemInteresse}
-              onChange={(e) => setForm({...form, viagemInteresse: e.target.value})}
-              required
-            >
-              <option value="">Selecione uma opção</option>
-              <option value="india">Viagem à Índia Sagrada</option>
-              <option value="mediterraneo">Cruzeiro pelo Mediterrâneo</option>
-              <option value="machu">Machu Picchu e Sagrado Feminino</option>
-              <option value="bali">Retiro em Bali</option>
-              <option value="egito">Egito e as Deusas</option>
-              <option value="todas">Todas as opções</option>
-            </select>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.02 }}>
-            <label className="label" htmlFor="mensagem">Conte-nos um pouco sobre você e por que deseja participar</label>
-            <textarea
-              id="mensagem"
-              rows={4}
-              className="input mt-1.5"
-              placeholder="Compartilhe sua história, expectativas e o que busca nesta jornada..."
-              value={form.mensagem}
-              onChange={(e) => setForm({...form, mensagem: e.target.value})}
-              required
-            />
-          </motion.div>
-
-          <motion.div 
-            className="rounded-2xl border border-line bg-surface-2/60 px-4 py-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9 }}
-          >
-            <p className="text-sm text-text-muted">
-              <strong>Importante:</strong> As vagas são limitadas e selecionadas com cuidade. 
-              O processo de seleção considera alinhamento com os valores da comunidade e disponibilidade para o compromisso da jornada.
-            </p>
-          </motion.div>
-
-          <InteractiveButton
-            type="submit"
-            loading={loading}
-            success={enviado}
-            className="w-full"
-          >
-            {loading ? 'Enviando interesse...' : 'Manifestar interesse'}
-          </InteractiveButton>
-        </motion.form>
-      </motion.div>
-    </motion.div>
+            <InteractiveButton type="submit" loading={loading} className="w-full">
+              {loading ? 'Enviando interesse...' : 'Manifestar interesse'}
+            </InteractiveButton>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }
