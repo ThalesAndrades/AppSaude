@@ -12,6 +12,8 @@ export default function AdminGatePage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
 
+  const masked = code.padEnd(6, '•').split('').slice(0, 6);
+
   const submit = (e) => {
     e.preventDefault();
     if (code.trim() !== ADMIN_CODE) {
@@ -41,9 +43,21 @@ export default function AdminGatePage() {
         <form onSubmit={submit} className="mt-8 space-y-4">
           <div>
             <label className="label" htmlFor="admin-code">Código interno</label>
+
+            <div className="mt-2 grid grid-cols-6 gap-2" aria-hidden="true">
+              {masked.map((d, i) => (
+                <div
+                  key={i}
+                  className="h-12 rounded-xl border border-line bg-surface grid place-items-center font-semibold text-text-strong"
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+
             <input
               id="admin-code"
-              className="input tracking-[0.25em] text-center"
+              className="input tracking-[0.25em] text-center mt-3"
               inputMode="numeric"
               autoComplete="one-time-code"
               type="password"

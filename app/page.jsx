@@ -8,6 +8,7 @@ import ParallaxHero from '@/components/ParallaxHero';
 import SocialProof from '@/components/SocialProof';
 import InteractiveButton from '@/components/InteractiveButton';
 import HeroBackground4K from '@/components/HeroBackground4K';
+import NewsRotator from '@/components/NewsRotator';
 import { motion } from 'framer-motion';
 
 const HERO_BENEFITS = [
@@ -57,12 +58,11 @@ export default function HomePage() {
     <>
       <section className="relative overflow-hidden min-h-screen flex items-center">
         <HeroBackground4K />
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-900/20 via-transparent to-black/30 pointer-events-none" />
 
-        <div className="relative section pt-20 pb-24 sm:pt-28 sm:pb-32 grid lg:grid-cols-[1.1fr_0.9fr] gap-14 items-center">
-          <AnimatedSection className="space-y-8">
+        <div className="relative section pt-12 pb-20 sm:pt-16 sm:pb-24 grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-start">
+          <AnimatedSection className="space-y-8 glass rounded-3xl p-6 sm:p-8">
             <motion.span 
-              className="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur ring-1 ring-ink-200 px-3 py-1 text-xs font-semibold text-brand-700 shadow-soft"
+              className="inline-flex items-center gap-2 rounded-full bg-surface/80 backdrop-blur ring-1 ring-line px-3 py-1 text-xs font-semibold text-brand-700 dark:text-brand-300 shadow-soft"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -114,8 +114,20 @@ export default function HomePage() {
               </InteractiveButton>
             </motion.div>
 
+            <div className="lg:hidden rounded-2xl border border-line bg-surface/85 backdrop-blur px-4 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-text-strong">Teste de conexão pessoal</p>
+                  <p className="text-xs text-text-muted mt-1">Um check rápido para entender seu momento.</p>
+                </div>
+                <Link href="/minha-conta/boas-vindas?teste=conexao" className="btn-outline btn-sm no-underline">
+                  Iniciar →
+                </Link>
+              </div>
+            </div>
+
             <motion.ul 
-              className="grid grid-cols-2 sm:grid-cols-3 gap-y-2 gap-x-5 text-sm text-ink-700"
+              className="grid grid-cols-2 sm:grid-cols-3 gap-y-2 gap-x-5 text-sm text-text"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
@@ -136,14 +148,14 @@ export default function HomePage() {
           </AnimatedSection>
 
           {/* Visual: preview da área interna */}
-          <AnimatedSection className="relative hidden lg:block" delay={0.3}>
+          <AnimatedSection className="relative hidden lg:block self-start -mt-6" delay={0.3}>
             <div className="absolute -inset-8 bg-mesh-brand blur-2xl opacity-70" aria-hidden="true" />
             <motion.div 
-              className="relative rounded-3xl border border-ink-200/80 bg-white shadow-lift p-2"
-              whileHover={{ scale: 1.02, rotateY: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              className="relative rounded-3xl border border-line bg-surface shadow-[var(--shadow-3)] p-2"
+              whileHover={{ scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 260 }}
             >
-              <div className="rounded-2xl bg-gradient-to-br from-ink-950 to-ink-800 p-6 text-white">
+              <div className="rounded-2xl bg-gradient-to-br from-ink-950 to-ink-800 p-5 text-white">
                 <div className="flex items-center gap-3">
                   <motion.div 
                     className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 grid place-items-center font-display text-lg"
@@ -161,48 +173,62 @@ export default function HomePage() {
                     Em evolução
                   </span>
                 </div>
-                <motion.div 
-                  className="mt-5 aspect-video rounded-xl bg-gradient-to-br from-brand-700/40 to-ink-900 grid place-items-center text-white/60 text-sm"
-                  whileHover={{ scale: 1.02 }}
-                >
+
+                <div className="mt-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold">Convite: teste de conexão pessoal</p>
+                      <p className="text-xs text-white/65 mt-1">2 minutos · recomendações personalizadas</p>
+                    </div>
+                    <Link
+                      href="/minha-conta/boas-vindas?teste=conexao"
+                      className="btn bg-white text-ink-950 hover:bg-ink-100 no-underline btn-sm"
+                    >
+                      Fazer teste →
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="mt-4 h-40 rounded-xl bg-gradient-to-br from-brand-700/35 to-ink-900 grid place-items-center text-white/60 text-sm">
                   <div className="flex flex-col items-center gap-2">
                     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                       <path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     </svg>
                     <span>Sua biblioteca pessoal</span>
                   </div>
-                </motion.div>
-                <div className="mt-4 flex justify-between text-xs">
+                </div>
+
+                <div className="mt-3 flex justify-between text-xs">
                   <span className="text-white/60">Próxima etapa</span>
                   <span className="text-white font-semibold">Conectar-se</span>
                 </div>
+
               </div>
             </motion.div>
 
             {/* Floating chip */}
             <motion.div 
-              className="absolute -left-6 bottom-10 rounded-2xl bg-white shadow-lift border border-ink-200 p-4 flex items-center gap-3 max-w-[260px]"
+              className="absolute -left-8 top-10 rounded-2xl bg-surface shadow-[var(--shadow-3)] border border-line p-3 flex items-center gap-3 w-[280px]"
               initial={{ x: -100, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.5, type: "spring" }}
-              whileHover={{ scale: 1.05, y: -5 }}
+              whileHover={{ scale: 1.03 }}
             >
-              <motion.div 
-                className="w-10 h-10 rounded-xl bg-accent-100 text-accent-700 grid place-items-center"
-                whileHover={{ scale: 1.1, rotate: 10 }}
-              >
+              <div className="w-10 h-10 rounded-xl bg-accent-100 text-accent-700 dark:bg-accent-500/15 dark:text-accent-300 grid place-items-center">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </motion.div>
+              </div>
               <div>
-                <p className="text-sm font-semibold text-ink-900">Progresso salvo</p>
-                <p className="text-xs text-ink-500">retome de onde parou</p>
+                <p className="text-sm font-semibold text-text-strong">Progresso salvo</p>
+                <p className="text-xs text-text-muted">retome de onde parou</p>
               </div>
             </motion.div>
           </AnimatedSection>
         </div>
       </section>
+
+      <NewsRotator />
 
       {/* ============= PRODUCTS ============= */}
       <section id="produtos" className="section py-24">
@@ -241,24 +267,15 @@ export default function HomePage() {
             <AnimatedSection key={segment.id} delay={index * 0.1}>
               <motion.div 
                 className="card text-center p-6 cursor-pointer"
-                whileHover={{ 
-                  scale: 1.05, 
-                  rotateY: 5,
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.1)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 300 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 260 }}
                 onClick={() => window.location.href = `/planos#${segment.id}`}
               >
                 <motion.div 
-                  className="w-12 h-12 rounded-xl bg-brand-100 text-brand-700 grid place-items-center mx-auto mb-4"
-                  whileHover={{ 
-                    rotate: 360,
-                    scale: 1.1,
-                    backgroundColor: "#a8794f",
-                    color: "white"
-                  }}
-                  transition={{ duration: 0.5 }}
+                  className="w-12 h-12 rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300 grid place-items-center mx-auto mb-4"
+                  whileHover={{ scale: 1.06 }}
+                  transition={{ type: "spring", stiffness: 260 }}
                 >
                   {segment.id === 'livros' && (
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -336,7 +353,7 @@ export default function HomePage() {
       </section>
 
       {/* ============= HOW IT WORKS ============= */}
-      <section id="como-funciona" className="bg-gradient-to-b from-ink-50/60 to-white border-y border-ink-200/70">
+      <section id="como-funciona" className="bg-gradient-to-b from-surface-2 to-bg border-y border-line">
         <div className="section py-24">
           <div className="max-w-2xl">
             <p className="eyebrow">Como funciona</p>
@@ -370,11 +387,11 @@ export default function HomePage() {
         <div className="mt-12 grid md:grid-cols-3 gap-6">
           {EXPERIENCE_POINTS.map(({ t, d, icon }) => (
             <div key={t} className="card-hover">
-              <div className="w-11 h-11 rounded-xl bg-brand-100 text-brand-700 grid place-items-center mb-5">
+              <div className="w-11 h-11 rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300 grid place-items-center mb-5">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none">{icon}</svg>
               </div>
-              <h3 className="font-display text-xl font-semibold text-ink-950">{t}</h3>
-              <p className="text-sm text-ink-600 mt-2 leading-relaxed">{d}</p>
+              <h3 className="font-display text-xl font-semibold text-text-strong">{t}</h3>
+              <p className="text-sm text-text-muted mt-2 leading-relaxed">{d}</p>
             </div>
           ))}
         </div>

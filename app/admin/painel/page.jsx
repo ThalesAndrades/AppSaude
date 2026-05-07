@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { listProducts } from '@/lib/products';
 
@@ -139,6 +139,7 @@ export default function AdminPainelPage() {
   const router = useRouter();
   const [tab, setTab] = useState('produtos');
   const [store, setStore] = useState(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -154,6 +155,7 @@ export default function AdminPainelPage() {
     const next = loaded || seedStore();
     setStore(next);
     if (!loaded) saveStore(next);
+    setReady(true);
   }, [router]);
 
   useEffect(() => {
@@ -170,6 +172,18 @@ export default function AdminPainelPage() {
       return next;
     });
   };
+
+  const metrics = useMemo(() => {
+    if (!store) {
+      return { totalProdutos: 0, produtosAtivos: 0, totalUsuarias: 0, usuariasAtivas: 0, totalLiberacoes: 0 };
+    }
+    const totalProdutos = store.produtos.length;
+    const produtosAtivos = store.produtos.filter((p) => p.ativo).length;
+    const totalUsuarias = store.usuarias.length;
+    const usuariasAtivas = store.usuarias.filter((u) => u.ativa).length;
+    const totalLiberacoes = store.usuarias.reduce((sum, u) => sum + (u.acessos?.length || 0), 0);
+    return { totalProdutos, produtosAtivos, totalUsuarias, usuariasAtivas, totalLiberacoes };
+  }, [store]);
 
   if (!store) {
     return (
@@ -192,7 +206,18 @@ export default function AdminPainelPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="btn-outline"
+            onClick={() => {
+              localStorage.removeItem(STORE_KEY);
+              const next = seedStore();
+              setStore(next);
+              saveStore(next);
+            }}
+          >
+            Reset demo
+          </button>
           <button
             className="btn-outline"
             onClick={() => {
@@ -208,21 +233,32 @@ export default function AdminPainelPage() {
         </div>
       </div>
 
-      <div className="mt-8 flex flex-wrap gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`btn-sm no-underline ${tab === t.key ? 'btn-primary' : 'btn-outline'}`}
-            type="button"
-            onClick={() => {
-              setTab(t.key);
-              router.replace(`/admin/painel?tab=${t.key}`);
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-3">
+        <Kpi label="Produtos" value={metrics.totalProdutos} />
+        <Kpi label="Ativos" value={metrics.produtosAtivos} />
+        <Kpi label="Usuárias" value={metrics.totalUsuarias} />
+        <Kpi label="Ativas" value={metrics.usuariasAtivas} />
+        <Kpi label="Liberações" value={metrics.totalLiberacoes} />
       </div>
+
+      <nav className="mt-8 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto" aria-label="Seções de gestão">
+        <div className="flex gap-2 min-w-max pb-1">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              className={`btn-sm ${tab === t.key ? 'btn-primary' : 'btn-outline'}`}
+              type="button"
+              aria-current={tab === t.key ? 'page' : undefined}
+              onClick={() => {
+                setTab(t.key);
+                router.replace(`/admin/painel?tab=${t.key}`);
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
       <div className="mt-8">
         {tab === 'produtos' && <TabProdutos store={store} updateStore={updateStore} />}
@@ -232,30 +268,222 @@ export default function AdminPainelPage() {
         {tab === 'editorial' && <TabEditorial store={store} updateStore={updateStore} />}
         {tab === 'engajamento' && <TabEngajamento store={store} updateStore={updateStore} />}
       </div>
+
+      {!ready && <div className="sr-only">Carregando…</div>}
     </div>
+  );
+}
+
+function Kpi({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-line bg-surface px-4 py-3">
+      <div className="text-xs text-text-muted">{label}</div>
+      <div className="mt-1 text-xl font-semibold text-text-strong tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function AdminProductIcon({ tipo }) {
+  const t = String(tipo || '');
+  const cls = 'stroke-current';
+  if (t === 'livros' || t === 'livro') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
+        <path d="M6 4.5h12v15H7.5A1.5 1.5 0 006 21V4.5z" strokeWidth="1.7" strokeLinejoin="round" />
+        <path d="M9 8h6" strokeWidth="1.7" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (t === 'digital') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
+        <path d="M6 7h12v9H6V7z" strokeWidth="1.7" strokeLinejoin="round" />
+        <path d="M9 19h6" strokeWidth="1.7" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (t === 'eventos' || t === 'evento') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
+        <path d="M7 3v3M17 3v3" strokeWidth="1.7" strokeLinecap="round" />
+        <path d="M5 7h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z" strokeWidth="1.7" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (t === 'viagens' || t === 'viagem') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
+        <path d="M12 21c4-4 7-7.5 7-11a7 7 0 10-14 0c0 3.5 3 7 7 11z" strokeWidth="1.7" strokeLinejoin="round" />
+        <path d="M12 11.5a2 2 0 100-4 2 2 0 000 4z" strokeWidth="1.7" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={cls} aria-hidden="true">
+      <path d="M12 2l1.5 6.5L20 12l-6.5 1.5L12 20l-1.5-6.5L4 12l6.5-3.5L12 2z" strokeWidth="1.7" strokeLinejoin="round" />
+    </svg>
   );
 }
 
 function TabProdutos({ store, updateStore }) {
   const [draft, setDraft] = useState({ nome: '', tipo: 'digital', preco: 0 });
+  const [query, setQuery] = useState('');
+  const [onlyActive, setOnlyActive] = useState(false);
+
+  const produtos = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return store.produtos.filter((p) => {
+      if (onlyActive && !p.ativo) return false;
+      if (!q) return true;
+      return String(p.nome || '').toLowerCase().includes(q);
+    });
+  }, [store.produtos, query, onlyActive]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
       <div className="card">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <h2 className="text-lg font-semibold text-text-strong">Catálogo</h2>
             <p className="text-sm text-text-muted mt-1">Ative, edite e organize tudo que é vendido.</p>
           </div>
-          <div className="text-xs text-text-muted bg-surface-2 border border-line rounded-xl px-3 py-2">
-            {store.produtos.length} itens
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+            <div className="text-xs text-text-muted bg-surface-2 border border-line rounded-xl px-3 py-2">
+              {produtos.length} itens
+            </div>
+            <label className="inline-flex items-center gap-2 text-sm text-text-muted">
+              <input
+                type="checkbox"
+                checked={onlyActive}
+                onChange={(e) => setOnlyActive(Boolean(e.target.checked))}
+                className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500/30"
+              />
+              Somente ativos
+            </label>
           </div>
         </div>
 
-        <div className="mt-6 overflow-x-auto">
+        <div className="mt-4">
+          <label className="sr-only" htmlFor="prod-search">Buscar produto</label>
+          <input
+            id="prod-search"
+            className="input"
+            placeholder="Buscar por nome…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="mt-6 space-y-3 md:hidden">
+          {produtos.map((p) => (
+            <div key={p.id} className="rounded-2xl border border-line bg-surface p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  <div className="h-10 w-10 shrink-0 rounded-2xl border border-line bg-surface-2 text-text-strong grid place-items-center">
+                    <AdminProductIcon tipo={p.tipo} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                  <div className="text-xs text-text-muted">Nome</div>
+                  <input
+                    className="input !py-2 mt-2"
+                    value={p.nome}
+                    onChange={(e) =>
+                      updateStore((prev) => ({
+                        ...prev,
+                        produtos: prev.produtos.map((x) => (x.id === p.id ? { ...x, nome: e.target.value } : x)),
+                      }))
+                    }
+                  />
+                  </div>
+                </div>
+                <button
+                  className={`btn-sm ${p.ativo ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() =>
+                    updateStore((prev) => ({
+                      ...prev,
+                      produtos: prev.produtos.map((x) => (x.id === p.id ? { ...x, ativo: !x.ativo } : x)),
+                    }))
+                  }
+                >
+                  {p.ativo ? 'Ativo' : 'Inativo'}
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs text-text-muted">Tipo</div>
+                  <select
+                    className="input !py-2 mt-2"
+                    value={p.tipo}
+                    onChange={(e) =>
+                      updateStore((prev) => ({
+                        ...prev,
+                        produtos: prev.produtos.map((x) => (x.id === p.id ? { ...x, tipo: e.target.value } : x)),
+                      }))
+                    }
+                  >
+                    <option value="livros">Livros</option>
+                    <option value="digital">Digital</option>
+                    <option value="eventos">Eventos</option>
+                    <option value="viagens">Viagens</option>
+                  </select>
+                </div>
+                <div>
+                  <div className="text-xs text-text-muted">Preço</div>
+                  <input
+                    className="input !py-2 mt-2"
+                    inputMode="decimal"
+                    value={p.preco}
+                    onChange={(e) =>
+                      updateStore((prev) => ({
+                        ...prev,
+                        produtos: prev.produtos.map((x) =>
+                          x.id === p.id
+                            ? {
+                                ...x,
+                                preco:
+                                  Number(String(e.target.value).replace(/[^0-9.,]/g, '').replace(',', '.')) || 0,
+                              }
+                            : x
+                        ),
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-text-muted">{moneyBRL(p.preco)}</div>
+                <button
+                  className="btn-sm btn-ghost"
+                  onClick={() => {
+                    if (!window.confirm('Remover este item do catálogo?')) return;
+                    updateStore((prev) => ({
+                      ...prev,
+                      produtos: prev.produtos.filter((x) => x.id !== p.id),
+                      usuarias: prev.usuarias.map((u) => ({ ...u, acessos: u.acessos.filter((id) => id !== p.id) })),
+                    }));
+                  }}
+                >
+                  Remover
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {produtos.length === 0 && (
+            <div className="rounded-2xl border border-line bg-surface-2 px-4 py-6 text-sm text-text-muted">
+              Nenhum produto encontrado.
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead className="text-text-muted">
               <tr className="border-b border-line">
+                <th className="py-3 text-left font-semibold w-12">&nbsp;</th>
                 <th className="py-3 text-left font-semibold">Nome</th>
                 <th className="py-3 text-left font-semibold">Tipo</th>
                 <th className="py-3 text-left font-semibold">Preço</th>
@@ -264,8 +492,13 @@ function TabProdutos({ store, updateStore }) {
               </tr>
             </thead>
             <tbody>
-              {store.produtos.map((p) => (
+              {produtos.map((p) => (
                 <tr key={p.id} className="border-b border-line last:border-b-0">
+                  <td className="py-3 pr-3">
+                    <div className="h-10 w-10 rounded-2xl border border-line bg-surface-2 text-text-strong grid place-items-center">
+                      <AdminProductIcon tipo={p.tipo} />
+                    </div>
+                  </td>
                   <td className="py-3 pr-3">
                     <input
                       className="input !py-2"
@@ -326,13 +559,14 @@ function TabProdutos({ store, updateStore }) {
                   <td className="py-3 text-right">
                     <button
                       className="btn-sm btn-ghost"
-                      onClick={() =>
+                      onClick={() => {
+                        if (!window.confirm('Remover este item do catálogo?')) return;
                         updateStore((prev) => ({
                           ...prev,
                           produtos: prev.produtos.filter((x) => x.id !== p.id),
                           usuarias: prev.usuarias.map((u) => ({ ...u, acessos: u.acessos.filter((id) => id !== p.id) })),
-                        }))
-                      }
+                        }));
+                      }}
                     >
                       Remover
                     </button>
@@ -405,12 +639,23 @@ function TabProdutos({ store, updateStore }) {
 
 function TabUsuarias({ store, updateStore }) {
   const [filter, setFilter] = useState('todas');
+  const [query, setQuery] = useState('');
 
   const usuarias = useMemo(() => {
     if (filter === 'ativas') return store.usuarias.filter((u) => u.ativa);
     if (filter === 'inativas') return store.usuarias.filter((u) => !u.ativa);
     return store.usuarias;
   }, [store.usuarias, filter]);
+
+  const usuariasFiltradas = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return usuarias;
+    return usuarias.filter((u) => {
+      const nome = String(u.nome || '').toLowerCase();
+      const email = String(u.email || '').toLowerCase();
+      return nome.includes(q) || email.includes(q);
+    });
+  }, [usuarias, query]);
 
   return (
     <div className="card">
@@ -432,7 +677,102 @@ function TabUsuarias({ store, updateStore }) {
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto">
+      <div className="mt-4">
+        <label className="sr-only" htmlFor="user-search">Buscar usuária</label>
+        <input
+          id="user-search"
+          className="input"
+          placeholder="Buscar por nome ou e-mail…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="mt-6 space-y-3 md:hidden">
+        {usuariasFiltradas.map((u) => (
+          <div key={u.id} className="rounded-2xl border border-line bg-surface p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-xs text-text-muted">Nome</div>
+                <input
+                  className="input !py-2 mt-2"
+                  value={u.nome}
+                  onChange={(e) =>
+                    updateStore((prev) => ({
+                      ...prev,
+                      usuarias: prev.usuarias.map((x) => (x.id === u.id ? { ...x, nome: e.target.value } : x)),
+                    }))
+                  }
+                />
+              </div>
+              <button
+                className={`btn-sm ${u.ativa ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() =>
+                  updateStore((prev) => ({
+                    ...prev,
+                    usuarias: prev.usuarias.map((x) => (x.id === u.id ? { ...x, ativa: !x.ativa } : x)),
+                  }))
+                }
+              >
+                {u.ativa ? 'Ativa' : 'Inativa'}
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              <div>
+                <div className="text-xs text-text-muted">E-mail</div>
+                <input
+                  className="input !py-2 mt-2"
+                  value={u.email}
+                  onChange={(e) =>
+                    updateStore((prev) => ({
+                      ...prev,
+                      usuarias: prev.usuarias.map((x) => (x.id === u.id ? { ...x, email: e.target.value } : x)),
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <div className="text-xs text-text-muted">Telefone</div>
+                <input
+                  className="input !py-2 mt-2"
+                  value={u.telefone}
+                  onChange={(e) =>
+                    updateStore((prev) => ({
+                      ...prev,
+                      usuarias: prev.usuarias.map((x) => (x.id === u.id ? { ...x, telefone: e.target.value } : x)),
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-text-muted">{(u.acessos || []).length} liberações</div>
+              <button
+                className="btn-sm btn-ghost"
+                onClick={() => {
+                  if (!window.confirm('Remover esta usuária?')) return;
+                  updateStore((prev) => ({
+                    ...prev,
+                    usuarias: prev.usuarias.filter((x) => x.id !== u.id),
+                  }));
+                }}
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        ))}
+
+        {usuariasFiltradas.length === 0 && (
+          <div className="rounded-2xl border border-line bg-surface-2 px-4 py-6 text-sm text-text-muted">
+            Nenhuma usuária encontrada.
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 overflow-x-auto hidden md:block">
         <table className="w-full text-sm">
           <thead className="text-text-muted">
             <tr className="border-b border-line">
@@ -444,7 +784,7 @@ function TabUsuarias({ store, updateStore }) {
             </tr>
           </thead>
           <tbody>
-            {usuarias.map((u) => (
+            {usuariasFiltradas.map((u) => (
               <tr key={u.id} className="border-b border-line last:border-b-0">
                 <td className="py-3 pr-3">
                   <input
@@ -498,12 +838,13 @@ function TabUsuarias({ store, updateStore }) {
                 <td className="py-3 text-right">
                   <button
                     className="btn-sm btn-ghost"
-                    onClick={() =>
+                    onClick={() => {
+                      if (!window.confirm('Remover esta usuária?')) return;
                       updateStore((prev) => ({
                         ...prev,
                         usuarias: prev.usuarias.filter((x) => x.id !== u.id),
-                      }))
-                    }
+                      }));
+                    }}
                   >
                     Remover
                   </button>
@@ -519,6 +860,17 @@ function TabUsuarias({ store, updateStore }) {
 
 function TabLiberacoes({ store, updateStore }) {
   const produtosAtivos = store.produtos.filter((p) => p.ativo);
+  const [query, setQuery] = useState('');
+  const [onlyActiveUsers, setOnlyActiveUsers] = useState(true);
+
+  const usuarias = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return store.usuarias.filter((u) => {
+      if (onlyActiveUsers && !u.ativa) return false;
+      if (!q) return true;
+      return String(u.nome || '').toLowerCase().includes(q) || String(u.email || '').toLowerCase().includes(q);
+    });
+  }, [store.usuarias, query, onlyActiveUsers]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
@@ -542,8 +894,26 @@ function TabLiberacoes({ store, updateStore }) {
         <h2 className="text-lg font-semibold text-text-strong">Liberações por usuária</h2>
         <p className="text-sm text-text-muted mt-1">Marque itens liberados (aceites/entregas).</p>
 
+        <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+          <input
+            className="input"
+            placeholder="Buscar usuária…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <label className="inline-flex items-center gap-2 text-sm text-text-muted">
+            <input
+              type="checkbox"
+              checked={onlyActiveUsers}
+              onChange={(e) => setOnlyActiveUsers(Boolean(e.target.checked))}
+              className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500/30"
+            />
+            Somente ativas
+          </label>
+        </div>
+
         <div className="mt-6 space-y-5">
-          {store.usuarias.map((u) => (
+          {usuarias.map((u) => (
             <div key={u.id} className="rounded-2xl border border-line bg-surface p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -605,7 +975,41 @@ function TabEcossistema({ store, updateStore }) {
   ];
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="space-y-6">
+      <div className="card">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-text-strong">Conexões</h2>
+            <p className="text-sm text-text-muted mt-1">Demonstração de integrações e status do ecossistema.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="btn-outline"
+              onClick={() =>
+                updateStore((prev) => ({
+                  ...prev,
+                  ecossistema: Object.fromEntries(Object.keys(prev.ecossistema).map((k) => [k, { connected: true }])),
+                }))
+              }
+            >
+              Conectar tudo
+            </button>
+            <button
+              className="btn-ghost"
+              onClick={() =>
+                updateStore((prev) => ({
+                  ...prev,
+                  ecossistema: Object.fromEntries(Object.keys(prev.ecossistema).map((k) => [k, { connected: false }])),
+                }))
+              }
+            >
+              Desconectar tudo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
       {items.map((it) => {
         const connected = store.ecossistema?.[it.key]?.connected;
         return (
@@ -652,6 +1056,7 @@ function TabEcossistema({ store, updateStore }) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
