@@ -26,7 +26,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-intersection-observer": "^9.8.1",
-    "react-parallax-tilt": "^1.7.220",
+    "react-parallax-tilt": "^1.7.329",
     "sonner": "^1.4.41",
     "undici": "^6.25.0"
   },
